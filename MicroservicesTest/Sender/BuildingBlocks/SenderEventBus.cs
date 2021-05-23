@@ -10,24 +10,29 @@ namespace Sender
 {
     public class SenderEventBus
     {
-        public SenderEventBus(string message)
+        public SenderEventBus()
+        {
+
+        }
+        public void SendMessage(string message)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
-            var connection = factory.CreateConnection();
 
-            var channel = connection.CreateModel();
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
 
-            channel.QueueDeclare(queue: "sending_test_q",
-                                         durable: false,
-                                         exclusive: false,
-                                         autoDelete: false,
-                                         arguments: null);
-            var body = Encoding.UTF8.GetBytes(message);
-            channel.BasicPublish(exchange: "",
-                                 routingKey: "sending_test_q",
-                                 basicProperties: null,
-                                 body: body);
-
+                channel.QueueDeclare(queue: "sending_test_q",
+                                             durable: false,
+                                             exclusive: false,
+                                             autoDelete: false,
+                                             arguments: null);
+                var body = Encoding.UTF8.GetBytes(message);
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "sending_test_q",
+                                     basicProperties: null,
+                                     body: body);
+            }
         }
     }
 }

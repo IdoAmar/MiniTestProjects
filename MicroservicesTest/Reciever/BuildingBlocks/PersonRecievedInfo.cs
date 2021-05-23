@@ -12,6 +12,7 @@ namespace Reciever
         private DateTime _Date { get;}
         private string _profession { get;}
         private ArrayList _infoList { get;}
+        private string _pageId { get;}
 
         public PersonRecievedInfo(ArrayList infoList)
         {
@@ -19,6 +20,8 @@ namespace Reciever
             _name = (string) infoList[0];
             _Date = (DateTime) infoList[1];
             _profession = (string) infoList[2];
+            _pageId = (string)infoList[3];
+
         }
     }
 }

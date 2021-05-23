@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -11,11 +12,17 @@ namespace Reciever.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
+        private RecieverEventBus _recieverEventBus;
+
         // GET api/values
+
+        public ValuesController([FromServices] RecieverEventBus recieverEventBus)
+        {
+            _recieverEventBus= recieverEventBus;
+        }
         [HttpGet]
         public ActionResult<string> Get()
         {
-            RecieverEventBus.Initialize();
             return "This is the Reciever";
         }
         // Recieving the information from the sending microservice and saving it into a person object
@@ -24,7 +31,7 @@ namespace Reciever.Controllers
         public ActionResult<IEnumerable<string>> Get(int id)
         {
             //decrypting the message
-            string encryptedMessage = RecieverEventBus.message;
+            string encryptedMessage = _recieverEventBus.GetCurrentMessage();
             string decryptedMessage = SimpleDecryption.Decrypt(encryptedMessage);
             // if the message is not empty convert the json information back to a list and saving it
             if (!String.IsNullOrEmpty(decryptedMessage))

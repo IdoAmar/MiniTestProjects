@@ -8,37 +8,53 @@ using RabbitMQ.Client.Events;
 
 namespace Reciever
 {
-    public static class RecieverEventBus
+    public class RecieverEventBus : IDisposable
     {
-        public static string message = "";
-        static RecieverEventBus()
+        private static string message = "";
+        ConnectionFactory factory;
+        IConnection connection;
+        IModel channel;
+        bool isDisposed = false;
+        public RecieverEventBus()
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            var connection = factory.CreateConnection();
-
-            var channel = connection.CreateModel();
-
-            channel.QueueDeclare(queue: "sending_test_q",
-                                         durable: false,
-                                         exclusive: false,
-                                         autoDelete: false,
-                                         arguments: null);
-            var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += (model, ea) =>
+            if (!isDisposed)
             {
-                var body = ea.Body.ToArray();
-                var msg = Encoding.UTF8.GetString(body.ToArray());
-                message = msg;
-            };
-            channel.BasicConsume(queue: "sending_test_q",
-                                 autoAck: true,
-                                 consumer: consumer);
+                factory = new ConnectionFactory() { HostName = "localhost" };
+                connection = factory.CreateConnection();
+                channel = connection.CreateModel();
 
+
+                channel.QueueDeclare(queue: "sending_test_q",
+                                             durable: false,
+                                             exclusive: false,
+                                             autoDelete: false,
+                                             arguments: null);
+                var consumer = new EventingBasicConsumer(channel);
+                consumer.Received += (model, ea) =>
+                {
+                    var body = ea.Body.ToArray();
+                    var msg = Encoding.UTF8.GetString(body.ToArray());
+                    message = msg;
+
+                };
+                channel.BasicConsume(queue: "sending_test_q",
+                                     autoAck: true,
+                                     consumer: consumer);
+            }
 
         }
-        public static void Initialize()
+        public string GetCurrentMessage()
         {
+            if(!isDisposed)
+                return message;
+            throw new ObjectDisposedException("object has been disposed");
+        }
 
+        public void Dispose()
+        {
+            isDisposed = true;
+            connection.Dispose();
+            channel.Dispose();
         }
     }
 }

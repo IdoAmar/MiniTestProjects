@@ -22,14 +22,14 @@ namespace Sender.Controllers
         // Sending the information to the recieving microservice through the RabbitMQ eventbus
         // GET api/values/5
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public ActionResult<string> Get(int id, [FromServices] SenderEventBus senderEventBus)
         {
-            PersonSendInfo personInfo = new PersonSendInfo("ido", new DateTime(1997, 12, 24), 22, "Programmer");
+            PersonSendInfo personInfo = new PersonSendInfo("ido", new DateTime(1997, 12, 24), 22, "Programmer",$"ID = {id}");
             //serializing the info to Json format to send through the rabbitMQ eventbus
             string serializedPersonInfo = JsonConvert.SerializeObject(personInfo.GetPersonListWithoutAge());
             //encrypting the message before sending
             string encryptedMessage = SimpleEncryption.Encrypt(serializedPersonInfo);
-            SenderEventBus senderEvent = new SenderEventBus(encryptedMessage);
+            senderEventBus.SendMessage(encryptedMessage);
             return "[Message Sent.]";
         }
 
